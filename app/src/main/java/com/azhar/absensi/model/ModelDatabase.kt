@@ -5,9 +5,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import java.io.Serializable
 
-/**
- * Created by Ketut Suanta on 19-10-2024
- */
+
 
 @Entity(tableName = "tbl_absensi")
 class ModelDatabase : Serializable {

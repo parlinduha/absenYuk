@@ -30,6 +30,9 @@
             android:name=".view.history.HistoryActivity"
             android:exported="false" />
         <activity
+            android:name=".view.hrd.HRDActivity"
+            android:exported="false" />
+        <activity
             android:name=".view.absen.AbsenActivity"
             android:exported="false" />
         <activity

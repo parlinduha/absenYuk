@@ -8,9 +8,13 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.azhar.absensi.R
+import com.azhar.absensi.database.AppDatabase
 import com.azhar.absensi.utils.SessionLogin
 import com.azhar.absensi.view.main.MainActivity
 import kotlinx.android.synthetic.main.activity_login.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class LoginActivity : AppCompatActivity() {
     lateinit var session: SessionLogin
@@ -18,17 +22,14 @@ class LoginActivity : AppCompatActivity() {
     lateinit var strPassword: String
     var REQ_PERMISSION = 101
 
-    // Hardcoded admin credentials
-    private val adminUsername = "admin"
-    private val adminPassword = "admin123"
-
-
-    private val penggunaUsername = "user"
-    private val penggunaPassword = "user123"
+    private lateinit var db: AppDatabase
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
+
+        // Inisialisasi database
+        db = AppDatabase.getDatabase(this)
 
         setPermission()
         setInitLayout()
@@ -62,25 +63,26 @@ class LoginActivity : AppCompatActivity() {
                 Toast.makeText(this@LoginActivity, "Form tidak boleh kosong!",
                     Toast.LENGTH_SHORT).show()
             } else {
-                // Check if the login is for admin
-                if (strNama == adminUsername && strPassword == adminPassword) {
-                    // Admin login success
-                    Toast.makeText(this@LoginActivity, "Login sebagai Admin", Toast.LENGTH_SHORT).show()
-                    val intent = Intent(this@LoginActivity, MainActivity::class.java)
-                    startActivity(intent)
-                    session.createLoginSession(strNama, "admin", 1)  // Save role as admin
-                }
-                // If not admin, check if the user exists
-                else if (strNama == penggunaUsername &&  strPassword == penggunaPassword) {
-//                else if (session.checkUserExists(strNama, strPassword)) {
-                    // User login success
-                    Toast.makeText(this@LoginActivity, "Login sebagai Pengguna", Toast.LENGTH_SHORT).show()
-                    val intent = Intent(this@LoginActivity, MainActivity::class.java)
-                    startActivity(intent)
-                    session.createLoginSession(strNama, "user", 2)  // Save role as user
-                } else {
-                    Toast.makeText(this@LoginActivity, "Nama atau Password salah!",
-                        Toast.LENGTH_SHORT).show()
+                CoroutineScope(Dispatchers.IO).launch {
+                    val user = db.userDao().getUserByCredentials(strNama, strPassword)
+                    runOnUiThread {
+                        if (user != null) {
+                            // User login success
+                            Toast.makeText(this@LoginActivity, "Login sebagai ${user.role}", Toast.LENGTH_SHORT).show()
+                            val intent = Intent(this@LoginActivity, MainActivity::class.java)
+                            startActivity(intent)
+                            session.createLoginSession(user.name, user.role, user.uid)
+                        } else if (strNama == "admin" && strPassword == "admin123") {
+                            // Admin login success
+                            Toast.makeText(this@LoginActivity, "Login sebagai admin", Toast.LENGTH_SHORT).show()
+                            val intent = Intent(this@LoginActivity, MainActivity::class.java)
+                            startActivity(intent)
+                            session.createLoginSession("admin", "admin", 0)
+                        } else {
+                            Toast.makeText(this@LoginActivity, "Nama atau Password salah!",
+                                Toast.LENGTH_SHORT).show()
+                        }
+                    }
                 }
             }
         }

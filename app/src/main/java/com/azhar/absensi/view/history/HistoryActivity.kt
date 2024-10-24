@@ -21,12 +21,16 @@ class HistoryActivity : AppCompatActivity(), HistoryAdapter.HistoryAdapterCallba
     private lateinit var historyViewModel: HistoryViewModel
     private lateinit var session: SessionLogin
     private lateinit var userRole: String
+    private var userId: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_history)
 
         session = SessionLogin(applicationContext) // Inisialisasi SessionLogin
+        userRole = session.getUserRole() ?: ""
+        userId = session.getUserUid()
+
         setInitLayout()
         setViewModel()
     }
@@ -46,16 +50,26 @@ class HistoryActivity : AppCompatActivity(), HistoryAdapter.HistoryAdapterCallba
 
     private fun setViewModel() {
         historyViewModel = ViewModelProvider(this).get(HistoryViewModel::class.java)
-        historyViewModel.dataLaporan.observe(this) { modelDatabases: List<ModelDatabase> ->
-            if (modelDatabases.isEmpty()) {
-                tvNotFound.visibility = View.VISIBLE
-                rvHistory.visibility = View.GONE
-            } else {
-                tvNotFound.visibility = View.GONE
-                rvHistory.visibility = View.VISIBLE
+        if (userRole == "admin") {
+            historyViewModel.getAllHistory().observe(this) { modelDatabases: List<ModelDatabase> ->
+                updateUI(modelDatabases)
             }
-            historyAdapter.setDataAdapter(modelDatabases)
+        } else {
+            historyViewModel.getHistoryByUid(userId).observe(this) { modelDatabases: List<ModelDatabase> ->
+                updateUI(modelDatabases)
+            }
         }
+    }
+
+    private fun updateUI(modelDatabases: List<ModelDatabase>) {
+        if (modelDatabases.isEmpty()) {
+            tvNotFound.visibility = View.VISIBLE
+            rvHistory.visibility = View.GONE
+        } else {
+            tvNotFound.visibility = View.GONE
+            rvHistory.visibility = View.VISIBLE
+        }
+        historyAdapter.setDataAdapter(modelDatabases)
     }
 
     override fun onDelete(modelDatabase: ModelDatabase?) {

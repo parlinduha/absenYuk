@@ -8,6 +8,7 @@ import com.azhar.absensi.R
 import com.azhar.absensi.utils.SessionLogin
 import com.azhar.absensi.view.absen.AbsenActivity
 import com.azhar.absensi.view.history.HistoryActivity
+import com.azhar.absensi.view.hrd.HRDActivity
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -41,12 +42,14 @@ class MainActivity : AppCompatActivity() {
             cvAbsenKeluar.visibility = android.view.View.GONE
             cvPerizinan.visibility = android.view.View.GONE
             cvHistory.visibility = android.view.View.VISIBLE // Admin dapat melihat history
+            cvHRD.visibility = android.view.View.VISIBLE // Admin dapat melihat tombol HRD
         } else {
             // Pengguna biasa dapat melihat absen dan perizinan, tapi tidak history
             cvAbsenMasuk.visibility = android.view.View.VISIBLE
             cvAbsenKeluar.visibility = android.view.View.VISIBLE
             cvPerizinan.visibility = android.view.View.VISIBLE
             cvHistory.visibility = android.view.View.VISIBLE // Pengguna  bisa melihat history sesuai id nya
+            cvHRD.visibility = android.view.View.GONE // Pengguna biasa tidak dapat melihat tombol HRD
         }
 
         // Set listener untuk Absen Masuk
@@ -76,6 +79,12 @@ class MainActivity : AppCompatActivity() {
         // Set listener untuk History (hanya admin)
         cvHistory.setOnClickListener {
             val intent = Intent(this@MainActivity, HistoryActivity::class.java)
+            startActivity(intent)
+        }
+
+        // Set listener for HRD (admin only)
+        cvHRD.setOnClickListener {
+            val intent = Intent(this@MainActivity, HRDActivity::class.java)
             startActivity(intent)
         }
 

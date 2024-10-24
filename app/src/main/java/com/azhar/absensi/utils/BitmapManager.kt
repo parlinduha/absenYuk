@@ -5,9 +5,6 @@ import android.graphics.BitmapFactory
 import android.util.Base64
 import java.io.ByteArrayOutputStream
 
-/**
- * Created by Ketut Suanta on 19-10-2024
- */
 
 object BitmapManager {
 

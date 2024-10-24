@@ -11,9 +11,7 @@ class SessionLogin(var context: Context) {
     var editor: SharedPreferences.Editor
     var PRIVATE_MODE = 0
 
-
     private val sharedPreferences: SharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-
 
     fun createLoginSession(nama: String, role: String, uid: Int) {
         Log.d("LoginSession", "Creating login session")
@@ -31,15 +29,9 @@ class SessionLogin(var context: Context) {
     fun getUserUid(): Int {
         return sharedPreferences.getInt(KEY_UID, 0) // Assuming you store user UID as an integer
     }
+
     fun getUserRole(): String? {
         return sharedPreferences.getString(KEY_ROLE, null)
-    }
-    fun checkUserExists(nama: String, password: String): Boolean {
-        // Replace this logic with real user validation
-        // For now, assume a user is stored in SharedPreferences
-        val storedNama = pref.getString(KEY_NAMA, null)
-        val storedPassword = pref.getString(KEY_PASSWORD, null)
-        return storedNama == nama && storedPassword == password
     }
 
     fun checkLogin() {

@@ -10,8 +10,6 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.schedulers.Schedulers
 
-
-
 class HistoryViewModel(application: Application) : AndroidViewModel(application) {
     var dataLaporan: LiveData<List<ModelDatabase>>
     var databaseDao: DatabaseDao? = getInstance(application)?.appDatabase?.databaseDao()
@@ -25,13 +23,12 @@ class HistoryViewModel(application: Application) : AndroidViewModel(application)
             .subscribe()
     }
 
-    fun getDataById(uid: Int) {
-        Completable.fromAction {
-            databaseDao?.getHistoryByUid(uid)
-        }
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe()
+    fun getAllHistory(): LiveData<List<ModelDatabase>> {
+        return databaseDao!!.getAllHistory()
+    }
+
+    fun getHistoryByUid(uid: Int): LiveData<List<ModelDatabase>> {
+        return databaseDao!!.getHistoryByUid(uid)
     }
 
     init {
