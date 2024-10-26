@@ -38,22 +38,23 @@ class HRDActivity : AppCompatActivity() {
         }
         rvUsers.adapter = userAdapter
 
-        // Tambahkan data dummy
-        userList.addAll(listOf(
-            User(1, "John Doe", "password123", "user"),
-            User(2, "Jane Smith", "password456", "user")
-        ))
-        userAdapter.notifyDataSetChanged()
-
-        // Tambahkan data admin secara hardcode
-        CoroutineScope(Dispatchers.IO).launch {
-            val adminUser = User(0, "admin", "admin123", "admin")
-            db.userDao().insertUser(adminUser)
-        }
+        // Muat data pengguna dari database
+        loadUsers()
 
         // Set listener untuk tombol tambah
         btnAddUser.setOnClickListener {
             showAddDialog()
+        }
+    }
+
+    private fun loadUsers() {
+        CoroutineScope(Dispatchers.IO).launch {
+            val users = db.userDao().getAllUsers()
+            runOnUiThread {
+                userList.clear()
+                userList.addAll(users)
+                userAdapter.notifyDataSetChanged()
+            }
         }
     }
 
@@ -63,19 +64,22 @@ class HRDActivity : AppCompatActivity() {
             .setTitle("Tambah Pengguna")
             .setView(dialogView)
             .setPositiveButton("Tambah") { dialog, which ->
-                val name = dialogView.etName.text.toString()
+                val email = dialogView.etName.text.toString()
                 val password = dialogView.etPassword.text.toString()
-                if (name.isNotEmpty() && password.isNotEmpty()) {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        val newUser = User(0, name, password, "user")
-                        db.userDao().insertUser(newUser)
-                        runOnUiThread {
-                            userList.add(newUser)
-                            userAdapter.notifyDataSetChanged()
+                if (email.isNotEmpty() && password.isNotEmpty()) {
+                    if (isValidEmail(email)) {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            val newUser = User(0, email, password, "user")
+                            db.userDao().insertUser(newUser)
+                            runOnUiThread {
+                                loadUsers() // Muat ulang data pengguna setelah menambahkan pengguna baru
+                            }
                         }
+                    } else {
+                        Toast.makeText(this, "Email tidak valid", Toast.LENGTH_SHORT).show()
                     }
                 } else {
-                    Toast.makeText(this, "Nama dan password tidak boleh kosong", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Email dan password tidak boleh kosong", Toast.LENGTH_SHORT).show()
                 }
             }
             .setNegativeButton("Batal") { dialog, which -> dialog.cancel() }
@@ -84,26 +88,28 @@ class HRDActivity : AppCompatActivity() {
 
     private fun showEditDialog(user: User) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_user, null)
-        dialogView.etName.setText(user.name)
+        dialogView.etName.setText(user.email)
         dialogView.etPassword.setText(user.password)
         val builder = AlertDialog.Builder(this)
             .setTitle("Edit Pengguna")
             .setView(dialogView)
             .setPositiveButton("Simpan") { dialog, which ->
-                val name = dialogView.etName.text.toString()
+                val email = dialogView.etName.text.toString()
                 val password = dialogView.etPassword.text.toString()
-                if (name.isNotEmpty() && password.isNotEmpty()) {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        val updatedUser = User(user.uid, name, password, user.role)
-                        db.userDao().insertUser(updatedUser)
-                        runOnUiThread {
-                            user.name = name
-                            user.password = password
-                            userAdapter.notifyDataSetChanged()
+                if (email.isNotEmpty() && password.isNotEmpty()) {
+                    if (isValidEmail(email)) {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            val updatedUser = User(user.uid, email, password, user.role)
+                            db.userDao().insertUser(updatedUser)
+                            runOnUiThread {
+                                loadUsers() // Muat ulang data pengguna setelah mengedit pengguna
+                            }
                         }
+                    } else {
+                        Toast.makeText(this, "Email tidak valid", Toast.LENGTH_SHORT).show()
                     }
                 } else {
-                    Toast.makeText(this, "Nama dan password tidak boleh kosong", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Email dan password tidak boleh kosong", Toast.LENGTH_SHORT).show()
                 }
             }
             .setNegativeButton("Batal") { dialog, which -> dialog.cancel() }
@@ -113,17 +119,21 @@ class HRDActivity : AppCompatActivity() {
     private fun showDeleteDialog(user: User) {
         val builder = AlertDialog.Builder(this)
             .setTitle("Hapus Pengguna")
-            .setMessage("Yakin ingin menghapus pengguna ${user.name}?")
+            .setMessage("Yakin ingin menghapus pengguna ${user.email}?")
             .setPositiveButton("Ya") { dialog, which ->
                 CoroutineScope(Dispatchers.IO).launch {
-                    db.userDao().deleteUser(user.uid)
+                    db.userDao().softDeleteUser(user.uid)
                     runOnUiThread {
-                        userList.remove(user)
-                        userAdapter.notifyDataSetChanged()
+                        loadUsers() // Muat ulang data pengguna setelah menghapus pengguna
                     }
                 }
             }
             .setNegativeButton("Batal") { dialog, which -> dialog.cancel() }
         builder.create().show()
+    }
+
+    private fun isValidEmail(email: String): Boolean {
+        val emailPattern = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+"
+        return email.matches(emailPattern.toRegex())
     }
 }

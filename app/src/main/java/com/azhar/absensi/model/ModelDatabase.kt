@@ -5,14 +5,18 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import java.io.Serializable
 
-
-
 @Entity(tableName = "tbl_absensi")
 class ModelDatabase : Serializable {
 
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "uid")
     var uid = 0
+
+    @ColumnInfo(name = "email")
+    lateinit var email: String
+
+    @ColumnInfo(name = "user_id")
+    var userId: Int = 0
 
     @ColumnInfo(name = "nama")
     lateinit var nama: String

@@ -6,7 +6,8 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "tbl_users")
 data class User(
     @PrimaryKey(autoGenerate = true) val uid: Int,
-    var name: String,
+    var email: String,
     var password: String,
-    val role: String
+    val role: String,
+    var isDeleted: Boolean = false // Untuk soft delete
 )

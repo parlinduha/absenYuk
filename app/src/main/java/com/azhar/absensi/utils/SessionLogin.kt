@@ -13,14 +13,14 @@ class SessionLogin(var context: Context) {
 
     private val sharedPreferences: SharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
 
-    fun createLoginSession(nama: String, role: String, uid: Int) {
+    fun createLoginSession(email: String, role: String, uid: Int) {
         Log.d("LoginSession", "Creating login session")
-        Log.d("LoginSession", "Nama: $nama")
+        Log.d("LoginSession", "Email: $email")
         Log.d("LoginSession", "Role: $role")
         Log.d("LoginSession", "UID: $uid")
 
         editor.putBoolean(IS_LOGIN, true)
-        editor.putString(KEY_NAMA, nama)
+        editor.putString(KEY_EMAIL, email)
         editor.putString(KEY_ROLE, role)
         editor.putInt(KEY_UID, uid)
         editor.commit()
@@ -32,6 +32,10 @@ class SessionLogin(var context: Context) {
 
     fun getUserRole(): String? {
         return sharedPreferences.getString(KEY_ROLE, null)
+    }
+
+    fun getUserEmail(): String?{
+        return sharedPreferences.getString(KEY_EMAIL,null)
     }
 
     fun checkLogin() {
@@ -57,7 +61,7 @@ class SessionLogin(var context: Context) {
     companion object {
         private const val PREF_NAME = "AbsensiPref"
         private const val IS_LOGIN = "IsLoggedIn"
-        const val KEY_NAMA = "NAMA"
+        const val KEY_EMAIL = "EMAIL"
         const val KEY_PASSWORD = "PASSWORD"  // For storing the user password
         const val KEY_ROLE = "ROLE"  // For storing the role (admin/user)
         const val KEY_UID = "UID"

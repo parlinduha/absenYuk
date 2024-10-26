@@ -24,7 +24,7 @@ class UserAdapter(private val userList: List<User>, private val onItemClick: (Us
 
     inner class UserViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         fun bind(user: User) {
-            itemView.tvName.text = user.name
+            itemView.tvName.text = user.email
             itemView.tvPassword.text = user.password
             itemView.btnEdit.setOnClickListener { onItemClick(user, "edit") }
             itemView.btnDelete.setOnClickListener { onItemClick(user, "delete") }

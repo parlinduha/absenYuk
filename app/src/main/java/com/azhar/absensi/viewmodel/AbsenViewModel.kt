@@ -14,11 +14,12 @@ import io.reactivex.rxjava3.schedulers.Schedulers
  */
 
 class AbsenViewModel(application: Application) : AndroidViewModel(application) {
+    private lateinit var userEmail: String
     var databaseDao: DatabaseDao? = getInstance(application)?.appDatabase?.databaseDao()
 
     fun addDataAbsen(
         foto: String, nama: String,
-        tanggal: String, lokasi: String, keterangan: String) {
+        tanggal: String, lokasi: String, keterangan: String, email: String) {
         Completable.fromAction {
             val modelDatabase = ModelDatabase()
             modelDatabase.fotoSelfie = foto
@@ -26,6 +27,7 @@ class AbsenViewModel(application: Application) : AndroidViewModel(application) {
             modelDatabase.tanggal = tanggal
             modelDatabase.lokasi = lokasi
             modelDatabase.keterangan = keterangan
+            modelDatabase.email = email
             databaseDao?.insertData(modelDatabase)
         }
             .subscribeOn(Schedulers.io())

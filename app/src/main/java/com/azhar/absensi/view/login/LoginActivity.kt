@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 
 class LoginActivity : AppCompatActivity() {
     lateinit var session: SessionLogin
-    lateinit var strNama: String
+    lateinit var strEmail: String
     lateinit var strPassword: String
     var REQ_PERMISSION = 101
 
@@ -56,36 +56,44 @@ class LoginActivity : AppCompatActivity() {
         }
 
         btnLogin.setOnClickListener {
-            strNama = inputNama.text.toString()
+            strEmail = inputNama.text.toString()
             strPassword = inputPassword.text.toString()
 
-            if (strNama.isEmpty() || strPassword.isEmpty()) {
+            if (strEmail.isEmpty() || strPassword.isEmpty()) {
                 Toast.makeText(this@LoginActivity, "Form tidak boleh kosong!",
+                    Toast.LENGTH_SHORT).show()
+            } else if (!isValidEmail(strEmail)) {
+                Toast.makeText(this@LoginActivity, "Email tidak valid!",
                     Toast.LENGTH_SHORT).show()
             } else {
                 CoroutineScope(Dispatchers.IO).launch {
-                    val user = db.userDao().getUserByCredentials(strNama, strPassword)
+                    val user = db.userDao().getUserByCredentials(strEmail, strPassword)
                     runOnUiThread {
                         if (user != null) {
                             // User login success
                             Toast.makeText(this@LoginActivity, "Login sebagai ${user.role}", Toast.LENGTH_SHORT).show()
                             val intent = Intent(this@LoginActivity, MainActivity::class.java)
                             startActivity(intent)
-                            session.createLoginSession(user.name, user.role, user.uid)
-                        } else if (strNama == "admin" && strPassword == "admin123") {
+                            session.createLoginSession(user.email, user.role, user.uid)
+                        } else if (strEmail == "admin@gmail.com" && strPassword == "admin123") {
                             // Admin login success
                             Toast.makeText(this@LoginActivity, "Login sebagai admin", Toast.LENGTH_SHORT).show()
                             val intent = Intent(this@LoginActivity, MainActivity::class.java)
                             startActivity(intent)
                             session.createLoginSession("admin", "admin", 0)
                         } else {
-                            Toast.makeText(this@LoginActivity, "Nama atau Password salah!",
+                            Toast.makeText(this@LoginActivity, "Email atau Password salah!",
                                 Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
             }
         }
+    }
+
+    private fun isValidEmail(email: String): Boolean {
+        val emailPattern = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+"
+        return email.matches(emailPattern.toRegex())
     }
 
     override fun onRequestPermissionsResult(

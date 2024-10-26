@@ -31,6 +31,10 @@ class HistoryViewModel(application: Application) : AndroidViewModel(application)
         return databaseDao!!.getHistoryByUid(uid)
     }
 
+    fun getHistoryByRoleAndUid(email: String): LiveData<List<ModelDatabase>> {
+        return databaseDao!!.getHistory(email)
+    }
+
     init {
         dataLaporan = databaseDao!!.getAllHistory()
     }

@@ -2,6 +2,7 @@ package com.azhar.absensi.view.history
 
 import android.content.DialogInterface
 import android.os.Bundle
+import android.util.Log
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
@@ -21,6 +22,7 @@ class HistoryActivity : AppCompatActivity(), HistoryAdapter.HistoryAdapterCallba
     private lateinit var historyViewModel: HistoryViewModel
     private lateinit var session: SessionLogin
     private lateinit var userRole: String
+    private lateinit var userEmail: String
     private var userId: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,6 +31,8 @@ class HistoryActivity : AppCompatActivity(), HistoryAdapter.HistoryAdapterCallba
 
         session = SessionLogin(applicationContext) // Inisialisasi SessionLogin
         userRole = session.getUserRole() ?: ""
+        userEmail = session.getUserEmail() ?: ""
+        Log.d("History Session", userEmail)
         userId = session.getUserUid()
 
         setInitLayout()
@@ -55,7 +59,7 @@ class HistoryActivity : AppCompatActivity(), HistoryAdapter.HistoryAdapterCallba
                 updateUI(modelDatabases)
             }
         } else {
-            historyViewModel.getHistoryByUid(userId).observe(this) { modelDatabases: List<ModelDatabase> ->
+            historyViewModel.getHistoryByRoleAndUid(userEmail).observe(this) { modelDatabases: List<ModelDatabase> ->
                 updateUI(modelDatabases)
             }
         }

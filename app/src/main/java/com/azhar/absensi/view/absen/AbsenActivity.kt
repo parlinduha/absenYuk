@@ -13,6 +13,7 @@ import android.location.Geocoder
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
+import android.util.Log
 import android.view.MenuItem
 import android.view.View
 import android.widget.DatePicker
@@ -25,6 +26,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.azhar.absensi.BuildConfig
 import com.azhar.absensi.R
 import com.azhar.absensi.utils.BitmapManager.bitmapToBase64
+import com.azhar.absensi.utils.SessionLogin
 import com.azhar.absensi.viewmodel.AbsenViewModel
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -55,13 +57,19 @@ class AbsenActivity : AppCompatActivity() {
     lateinit var strTitle: String
     lateinit var strTimeStamp: String
     lateinit var strImageName: String
+    private lateinit var session: SessionLogin
     lateinit var absenViewModel: AbsenViewModel
     lateinit var progressDialog: ProgressDialog
+    private lateinit var userEmail: String
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_absen)
 
+        session = SessionLogin(applicationContext) // Inisialisasi SessionLogin
+        userEmail = session.getUserEmail() ?: ""
+        Log.d("History Session", userEmail)
         setInitLayout()
         setCurrentLocation()
         setUploadData()
@@ -210,7 +218,8 @@ class AbsenActivity : AppCompatActivity() {
                     strNama,
                     strTanggal,
                     strCurrentLocation,
-                    strKeterangan)
+                    strKeterangan,
+                    userEmail)
                 Toast.makeText(this@AbsenActivity,
                     "Laporan Anda terkirim, tunggu info selanjutnya ya!", Toast.LENGTH_SHORT).show()
                 finish()
