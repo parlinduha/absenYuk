@@ -1,22 +1,28 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
-    id 'kotlin-android-extensions'
     id 'kotlin-kapt'
 }
 
 android {
-    compileSdk 32
+    compileSdk 34
 
     defaultConfig {
         applicationId "com.azhar.absensi"
         minSdk 21
-        targetSdk 32
+        targetSdk 34
         versionCode 1
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
+
+    buildFeatures {
+        buildConfig = true
+        viewBinding true
+    }
+
+
 
     buildTypes {
         release {
@@ -27,6 +33,9 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = "1.8"
     }
     namespace 'com.azhar.absensi'
 }
@@ -43,15 +52,15 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 
     // Lifecycle Components
-    implementation 'androidx.lifecycle:lifecycle-livedata:2.4.1'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.1'
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.7.0'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0'
     implementation "androidx.lifecycle:lifecycle-extensions:2.2.0"
     implementation 'androidx.recyclerview:recyclerview:1.2.1'
 
     // Room Database
-    implementation "androidx.room:room-rxjava3:2.4.2"
-    implementation "androidx.room:room-runtime:2.4.2"
-    kapt "androidx.room:room-compiler:2.4.2"
+    implementation "androidx.room:room-ktx:2.6.0"
+    implementation "androidx.room:room-runtime:2.7.2"
+    kapt "androidx.room:room-compiler:2.7.2"
 
     // Glide
     implementation 'com.github.bumptech.glide:glide:4.12.0'

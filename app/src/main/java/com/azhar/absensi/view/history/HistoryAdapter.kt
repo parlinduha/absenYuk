@@ -4,18 +4,14 @@ import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
-import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 import com.azhar.absensi.R
+import com.azhar.absensi.databinding.ListHistoryAbsenBinding
 import com.azhar.absensi.model.ModelDatabase
 import com.azhar.absensi.utils.BitmapManager.base64ToBitmap
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.google.android.material.imageview.ShapeableImageView
-import kotlinx.android.synthetic.main.list_history_absen.view.*
 
 class HistoryAdapter(
     private val mContext: Context,
@@ -30,51 +26,46 @@ class HistoryAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.list_history_absen, parent, false)
-        return ViewHolder(view)
+        val binding = ListHistoryAbsenBinding.inflate(
+            LayoutInflater.from(parent.context),
+            parent,
+            false
+        )
+        return ViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val data = modelDatabase[position]
-        holder.tvNomor.text = data.uid.toString() // Ganti String.valueOf dengan toString()
-        holder.tvNama.text = data.nama
-        holder.tvLokasi.text = data.lokasi
-        holder.tvAbsenTime.text = data.tanggal
-        holder.tvStatusAbsen.text = data.keterangan
+        with(holder.binding) {
+            tvNomor.text = data.uid.toString()
+            tvNama.text = data.nama
+            tvLokasi.text = data.lokasi
+            tvAbsenTime.text = data.tanggal
+            tvStatusAbsen.text = data.keterangan
 
-        // Gunakan Glide untuk memuat gambar
-        Glide.with(mContext)
-            .load(base64ToBitmap(data.fotoSelfie))
-            .diskCacheStrategy(DiskCacheStrategy.ALL)
-            .placeholder(R.drawable.ic_photo_camera)
-            .into(holder.imageProfile)
+            Glide.with(mContext)
+                .load(base64ToBitmap(data.fotoSelfie))
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .placeholder(R.drawable.ic_photo_camera)
+                .into(imageProfile)
 
-        // Mengubah warna status berdasarkan keterangan
-        holder.colorStatus.setBackgroundResource(R.drawable.bg_circle_radius)
-        holder.colorStatus.backgroundTintList = when (data.keterangan) {
-            "Absen Masuk" -> ColorStateList.valueOf(Color.GREEN)
-            "Absen Keluar" -> ColorStateList.valueOf(Color.RED)
-            "Izin" -> ColorStateList.valueOf(Color.BLUE)
-            else -> ColorStateList.valueOf(Color.GRAY) // Default color jika tidak ada yang cocok
+            colorStatus.setBackgroundResource(R.drawable.bg_circle_radius)
+            colorStatus.backgroundTintList = when (data.keterangan) {
+                "Absen Masuk" -> ColorStateList.valueOf(Color.GREEN)
+                "Absen Keluar" -> ColorStateList.valueOf(Color.RED)
+                "Izin" -> ColorStateList.valueOf(Color.BLUE)
+                else -> ColorStateList.valueOf(Color.GRAY)
+            }
         }
     }
 
-    override fun getItemCount(): Int {
-        return modelDatabase.size
-    }
+    override fun getItemCount(): Int = modelDatabase.size
 
-    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val tvStatusAbsen: TextView = itemView.tvStatusAbsen
-        val tvNomor: TextView = itemView.tvNomor
-        val tvNama: TextView = itemView.tvNama
-        val tvLokasi: TextView = itemView.tvLokasi
-        val tvAbsenTime: TextView = itemView.tvAbsenTime
-        val cvHistory: CardView = itemView.cvHistory
-        val imageProfile: ShapeableImageView = itemView.imageProfile
-        val colorStatus: View = itemView.colorStatus
+    inner class ViewHolder(val binding: ListHistoryAbsenBinding) :
+        RecyclerView.ViewHolder(binding.root) {
 
         init {
-            cvHistory.setOnClickListener {
+            binding.cvHistory.setOnClickListener {
                 val modelLaundry = modelDatabase[adapterPosition]
                 mAdapterCallback.onDelete(modelLaundry)
             }

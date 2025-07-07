@@ -11,12 +11,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.azhar.absensi.R
+import com.azhar.absensi.databinding.ActivityHistoryBinding
 import com.azhar.absensi.model.ModelDatabase
 import com.azhar.absensi.utils.SessionLogin
 import com.azhar.absensi.viewmodel.HistoryViewModel
-import kotlinx.android.synthetic.main.activity_history.*
 
 class HistoryActivity : AppCompatActivity(), HistoryAdapter.HistoryAdapterCallback {
+    private lateinit var binding: ActivityHistoryBinding
     private var modelDatabaseList: MutableList<ModelDatabase> = ArrayList()
     private lateinit var historyAdapter: HistoryAdapter
     private lateinit var historyViewModel: HistoryViewModel
@@ -27,9 +28,10 @@ class HistoryActivity : AppCompatActivity(), HistoryAdapter.HistoryAdapterCallba
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_history)
+        binding = ActivityHistoryBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        session = SessionLogin(applicationContext) // Inisialisasi SessionLogin
+        session = SessionLogin(applicationContext)
         userRole = session.getUserRole() ?: ""
         userEmail = session.getUserEmail() ?: ""
         Log.d("History Session", userEmail)
@@ -40,16 +42,18 @@ class HistoryActivity : AppCompatActivity(), HistoryAdapter.HistoryAdapterCallba
     }
 
     private fun setInitLayout() {
-        setSupportActionBar(toolbar)
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
-        tvNotFound.visibility = View.GONE
+        binding.tvNotFound.visibility = View.GONE
 
         historyAdapter = HistoryAdapter(this, modelDatabaseList, this)
-        rvHistory.setHasFixedSize(true)
-        rvHistory.layoutManager = LinearLayoutManager(this)
-        rvHistory.adapter = historyAdapter
+        binding.rvHistory.apply {
+            setHasFixedSize(true)
+            layoutManager = LinearLayoutManager(this@HistoryActivity)
+            adapter = historyAdapter
+        }
     }
 
     private fun setViewModel() {
@@ -67,11 +71,11 @@ class HistoryActivity : AppCompatActivity(), HistoryAdapter.HistoryAdapterCallba
 
     private fun updateUI(modelDatabases: List<ModelDatabase>) {
         if (modelDatabases.isEmpty()) {
-            tvNotFound.visibility = View.VISIBLE
-            rvHistory.visibility = View.GONE
+            binding.tvNotFound.visibility = View.VISIBLE
+            binding.rvHistory.visibility = View.GONE
         } else {
-            tvNotFound.visibility = View.GONE
-            rvHistory.visibility = View.VISIBLE
+            binding.tvNotFound.visibility = View.GONE
+            binding.rvHistory.visibility = View.VISIBLE
         }
         historyAdapter.setDataAdapter(modelDatabases)
     }
@@ -79,12 +83,19 @@ class HistoryActivity : AppCompatActivity(), HistoryAdapter.HistoryAdapterCallba
     override fun onDelete(modelDatabase: ModelDatabase?) {
         val alertDialogBuilder = AlertDialog.Builder(this)
         alertDialogBuilder.setMessage("Hapus riwayat ini?")
-        alertDialogBuilder.setPositiveButton("Ya, Hapus") { dialogInterface, i ->
-            val uid = modelDatabase!!.uid
-            historyViewModel.deleteDataById(uid)
-            Toast.makeText(this@HistoryActivity, "Yeay! Data yang dipilih sudah dihapus", Toast.LENGTH_SHORT).show()
+        alertDialogBuilder.setPositiveButton("Ya, Hapus") { dialogInterface, _ ->
+            modelDatabase?.uid?.let { uid ->
+                historyViewModel.deleteDataById(uid)
+                Toast.makeText(
+                    this@HistoryActivity,
+                    "Yeay! Data yang dipilih sudah dihapus",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
         }
-        alertDialogBuilder.setNegativeButton("Batal") { dialogInterface: DialogInterface, i: Int -> dialogInterface.cancel() }
+        alertDialogBuilder.setNegativeButton("Batal") { dialogInterface: DialogInterface, _ ->
+            dialogInterface.cancel()
+        }
         val alertDialog = alertDialogBuilder.create()
         alertDialog.show()
     }

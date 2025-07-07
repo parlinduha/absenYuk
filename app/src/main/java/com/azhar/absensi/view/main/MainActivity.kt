@@ -5,31 +5,32 @@ import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.azhar.absensi.R
+import com.azhar.absensi.databinding.ActivityMainBinding
 import com.azhar.absensi.utils.SessionLogin
 import com.azhar.absensi.view.absen.AbsenActivity
 import com.azhar.absensi.view.history.HistoryActivity
 import com.azhar.absensi.view.hrd.HRDActivity
-import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var strTitle: String
-    lateinit var session: SessionLogin
-    lateinit var userRole: String
-    lateinit var currentUserId: String
+    private lateinit var binding: ActivityMainBinding
+    private lateinit var session: SessionLogin
+    private lateinit var userRole: String
+    private lateinit var currentUserId: String
+    private lateinit var strTitle: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         // Inisialisasi session
         session = SessionLogin(this)
-        session.checkLogin() // Pastikan pengguna sudah login
+        session.checkLogin()
         currentUserId = session.getUserUid().toString()
 
-
         // Ambil role dari session
-        userRole = session.getUserRole() ?: "pengguna" // Default adalah 'pengguna'
+        userRole = session.getUserRole() ?: "pengguna"
 
         // Panggil fungsi untuk mengatur tampilan sesuai role
         setInitLayout(userRole)
@@ -38,68 +39,71 @@ class MainActivity : AppCompatActivity() {
     private fun setInitLayout(role: String) {
         if (role == "admin") {
             // Hanya admin yang bisa melihat history, sembunyikan lainnya
-            cvAbsenMasuk.visibility = android.view.View.GONE
-            cvAbsenKeluar.visibility = android.view.View.GONE
-            cvPerizinan.visibility = android.view.View.GONE
-            cvHistory.visibility = android.view.View.VISIBLE // Admin dapat melihat history
-            cvHRD.visibility = android.view.View.VISIBLE // Admin dapat melihat tombol HRD
+            binding.cvAbsenMasuk.visibility = android.view.View.GONE
+            binding.cvAbsenKeluar.visibility = android.view.View.GONE
+            binding.cvPerizinan.visibility = android.view.View.GONE
+            binding.cvHistory.visibility = android.view.View.VISIBLE
+            binding.cvHRD.visibility = android.view.View.VISIBLE
         } else {
-            // Pengguna biasa dapat melihat absen dan perizinan, tapi tidak history
-            cvAbsenMasuk.visibility = android.view.View.VISIBLE
-            cvAbsenKeluar.visibility = android.view.View.VISIBLE
-            cvPerizinan.visibility = android.view.View.VISIBLE
-            cvHistory.visibility = android.view.View.VISIBLE // Pengguna  bisa melihat history sesuai id nya
-            cvHRD.visibility = android.view.View.GONE // Pengguna biasa tidak dapat melihat tombol HRD
+            // Pengguna biasa
+            binding.cvAbsenMasuk.visibility = android.view.View.VISIBLE
+            binding.cvAbsenKeluar.visibility = android.view.View.VISIBLE
+            binding.cvPerizinan.visibility = android.view.View.VISIBLE
+            binding.cvHistory.visibility = android.view.View.VISIBLE
+            binding.cvHRD.visibility = android.view.View.GONE
         }
 
         // Set listener untuk Absen Masuk
-        cvAbsenMasuk.setOnClickListener {
+        binding.cvAbsenMasuk.setOnClickListener {
             strTitle = "Absen Masuk"
-            val intent = Intent(this@MainActivity, AbsenActivity::class.java)
-            intent.putExtra(AbsenActivity.DATA_TITLE, strTitle)
-            startActivity(intent)
+            navigateToAbsenActivity(strTitle)
         }
 
         // Set listener untuk Absen Keluar
-        cvAbsenKeluar.setOnClickListener {
+        binding.cvAbsenKeluar.setOnClickListener {
             strTitle = "Absen Keluar"
-            val intent = Intent(this@MainActivity, AbsenActivity::class.java)
-            intent.putExtra(AbsenActivity.DATA_TITLE, strTitle)
-            startActivity(intent)
+            navigateToAbsenActivity(strTitle)
         }
 
         // Set listener untuk Izin
-        cvPerizinan.setOnClickListener {
+        binding.cvPerizinan.setOnClickListener {
             strTitle = "Izin"
-            val intent = Intent(this@MainActivity, AbsenActivity::class.java)
-            intent.putExtra(AbsenActivity.DATA_TITLE, strTitle)
-            startActivity(intent)
+            navigateToAbsenActivity(strTitle)
         }
 
-        // Set listener untuk History (hanya admin)
-        cvHistory.setOnClickListener {
-            val intent = Intent(this@MainActivity, HistoryActivity::class.java)
-            startActivity(intent)
+        // Set listener untuk History
+        binding.cvHistory.setOnClickListener {
+            startActivity(Intent(this, HistoryActivity::class.java))
         }
 
-        // Set listener for HRD (admin only)
-        cvHRD.setOnClickListener {
-            val intent = Intent(this@MainActivity, HRDActivity::class.java)
-            startActivity(intent)
+        // Set listener untuk HRD
+        binding.cvHRD.setOnClickListener {
+            startActivity(Intent(this, HRDActivity::class.java))
         }
 
         // Set listener untuk Logout
-        imageLogout.setOnClickListener {
-            val builder = AlertDialog.Builder(this@MainActivity)
-            builder.setMessage("Yakin Anda ingin Logout?")
-            builder.setCancelable(true)
-            builder.setNegativeButton("Batal") { dialog, _ -> dialog.cancel() }
-            builder.setPositiveButton("Ya") { _, _ ->
+        binding.imageLogout.setOnClickListener {
+            showLogoutDialog()
+        }
+    }
+
+    private fun navigateToAbsenActivity(title: String) {
+        val intent = Intent(this, AbsenActivity::class.java).apply {
+            putExtra(AbsenActivity.DATA_TITLE, title)
+        }
+        startActivity(intent)
+    }
+
+    private fun showLogoutDialog() {
+        AlertDialog.Builder(this).apply {
+            setMessage("Yakin Anda ingin Logout?")
+            setCancelable(true)
+            setNegativeButton("Batal") { dialog, _ -> dialog.cancel() }
+            setPositiveButton("Ya") { _, _ ->
                 session.logoutUser()
-                finishAffinity() // Menutup semua aktivitas dan kembali ke layar login
+                finishAffinity()
             }
-            val alertDialog = builder.create()
-            alertDialog.show()
+            create().show()
         }
     }
 }
