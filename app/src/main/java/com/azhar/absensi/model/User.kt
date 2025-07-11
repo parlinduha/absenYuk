@@ -9,5 +9,6 @@ data class User(
     var email: String,
     var password: String,
     val role: String,
+    val name: String,
     var isDeleted: Boolean = false // Untuk soft delete
 )

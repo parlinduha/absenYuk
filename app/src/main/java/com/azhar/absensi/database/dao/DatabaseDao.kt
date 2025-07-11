@@ -21,6 +21,9 @@ interface DatabaseDao {
     @Query("SELECT a.* FROM tbl_absensi a JOIN tbl_users u ON a.user_id = u.uid WHERE a.user_id = :userId AND u.role = :role")
     fun getHistoryByRoleAndUid(userId: Int, role: String): LiveData<List<ModelDatabase>>
 
+    @Query("SELECT * FROM tbl_absensi WHERE email = :email ORDER BY tanggal DESC")
+    fun getHistoryByEmail(email: String): LiveData<List<ModelDatabase>>
+
     @Insert
     fun insertData(modelDatabases: ModelDatabase)
 

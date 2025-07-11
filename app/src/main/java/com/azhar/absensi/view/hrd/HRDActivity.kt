@@ -52,11 +52,21 @@ class HRDActivity : AppCompatActivity() {
 
     private fun loadUsers() {
         CoroutineScope(Dispatchers.IO).launch {
-            val users = db.userDao().getAllUsers()
-            runOnUiThread {
-                userList.clear()
-                userList.addAll(users)
-                userAdapter.notifyDataSetChanged()
+            try {
+                val users = db.userDao().getAllUsers()
+                runOnUiThread {
+                    userList.clear()
+                    userList.addAll(users)
+                    userAdapter.notifyDataSetChanged()
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    Toast.makeText(
+                        this@HRDActivity,
+                        "Gagal memuat data: ${e.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
         }
     }
@@ -67,72 +77,151 @@ class HRDActivity : AppCompatActivity() {
             .setTitle("Tambah Pengguna")
             .setView(dialogBinding.root)
             .setPositiveButton("Tambah") { dialog, which ->
-                val email = dialogBinding.etName.text.toString()
+                val name = dialogBinding.etName.text.toString()
+                val email = dialogBinding.etEmail.text.toString()
                 val password = dialogBinding.etPassword.text.toString()
-                if (email.isNotEmpty() && password.isNotEmpty()) {
+                val role = "user" // Default role
+
+                if (name.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty()) {
                     if (isValidEmail(email)) {
                         CoroutineScope(Dispatchers.IO).launch {
-                            val newUser = User(0, email, password, "user")
-                            db.userDao().insertUser(newUser)
-                            runOnUiThread {
-                                loadUsers()
+                            try {
+                                val newUser = User(
+                                    uid = 0, // autoGenerate akan mengisi ini
+                                    email = email,
+                                    password = password,
+                                    role = role,
+                                    name = name,
+                                    isDeleted = false
+                                )
+                                db.userDao().insertUser(newUser)
+                                runOnUiThread {
+                                    loadUsers()
+                                    Toast.makeText(
+                                        this@HRDActivity,
+                                        "Pengguna berhasil ditambahkan",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            } catch (e: Exception) {
+                                runOnUiThread {
+                                    Toast.makeText(
+                                        this@HRDActivity,
+                                        "Gagal menambah pengguna: ${e.message}",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
                             }
                         }
                     } else {
-                        Toast.makeText(this, "Email tidak valid", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            this,
+                            "Format email tidak valid",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 } else {
-                    Toast.makeText(this, "Email dan password tidak boleh kosong", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this,
+                        "Semua field harus diisi",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
-            .setNegativeButton("Batal") { dialog, which -> dialog.cancel() }
+            .setNegativeButton("Batal") { dialog, which -> dialog.dismiss() }
         builder.create().show()
     }
 
     private fun showEditDialog(user: User) {
         val dialogBinding = DialogUserBinding.inflate(LayoutInflater.from(this))
-        dialogBinding.etName.setText(user.email)
+        dialogBinding.etName.setText(user.name)
+        dialogBinding.etEmail.setText(user.email)
         dialogBinding.etPassword.setText(user.password)
+
         val builder = AlertDialog.Builder(this)
             .setTitle("Edit Pengguna")
             .setView(dialogBinding.root)
             .setPositiveButton("Simpan") { dialog, which ->
-                val email = dialogBinding.etName.text.toString()
+                val name = dialogBinding.etName.text.toString()
+                val email = dialogBinding.etEmail.text.toString()
                 val password = dialogBinding.etPassword.text.toString()
-                if (email.isNotEmpty() && password.isNotEmpty()) {
+
+                if (name.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty()) {
                     if (isValidEmail(email)) {
                         CoroutineScope(Dispatchers.IO).launch {
-                            val updatedUser = User(user.uid, email, password, user.role)
-                            db.userDao().insertUser(updatedUser)
-                            runOnUiThread {
-                                loadUsers()
+                            try {
+                                val updatedUser = user.copy(
+                                    name = name,
+                                    email = email,
+                                    password = password
+                                )
+                                db.userDao().insertUser(updatedUser)
+                                runOnUiThread {
+                                    loadUsers()
+                                    Toast.makeText(
+                                        this@HRDActivity,
+                                        "Perubahan berhasil disimpan",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            } catch (e: Exception) {
+                                runOnUiThread {
+                                    Toast.makeText(
+                                        this@HRDActivity,
+                                        "Gagal menyimpan perubahan: ${e.message}",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
                             }
                         }
                     } else {
-                        Toast.makeText(this, "Email tidak valid", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            this,
+                            "Format email tidak valid",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 } else {
-                    Toast.makeText(this, "Email dan password tidak boleh kosong", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this,
+                        "Semua field harus diisi",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
-            .setNegativeButton("Batal") { dialog, which -> dialog.cancel() }
+            .setNegativeButton("Batal") { dialog, which -> dialog.dismiss() }
         builder.create().show()
     }
 
     private fun showDeleteDialog(user: User) {
-        val builder = AlertDialog.Builder(this)
+        AlertDialog.Builder(this)
             .setTitle("Hapus Pengguna")
-            .setMessage("Yakin ingin menghapus pengguna ${user.email}?")
+            .setMessage("Yakin ingin menghapus pengguna ${user.name}?")
             .setPositiveButton("Ya") { dialog, which ->
                 CoroutineScope(Dispatchers.IO).launch {
-                    db.userDao().softDeleteUser(user.uid)
-                    runOnUiThread {
-                        loadUsers()
+                    try {
+                        db.userDao().softDeleteUser(user.uid)
+                        runOnUiThread {
+                            loadUsers()
+                            Toast.makeText(
+                                this@HRDActivity,
+                                "Pengguna berhasil dihapus",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    } catch (e: Exception) {
+                        runOnUiThread {
+                            Toast.makeText(
+                                this@HRDActivity,
+                                "Gagal menghapus pengguna: ${e.message}",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
                     }
                 }
             }
-            .setNegativeButton("Batal") { dialog, which -> dialog.cancel() }
-        builder.create().show()
+            .setNegativeButton("Batal") { dialog, which -> dialog.dismiss() }
+            .show()
     }
 
     private fun isValidEmail(email: String): Boolean {
